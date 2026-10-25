@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import queue
 import threading
 import time
@@ -17,6 +18,7 @@ from meetai.types import SAMPLE_RATE, AudioChunk, Line, Source, Utterance
 from meetai.vad import Segmenter
 
 Sink = Callable[[Line], None]
+log = logging.getLogger(__name__)
 
 
 class Pipeline:
@@ -71,6 +73,7 @@ class Pipeline:
     def feed(self, chunk: AudioChunk) -> None:
         utt = self._segmenters[chunk.source].feed(chunk)
         if utt is not None:
+            log.info("%s utterance %.1fs queued (backlog %d)", utt.source.value, len(utt.samples) / SAMPLE_RATE, self._queue.qsize())
             self._queue.put(utt)
 
     def _work(self) -> None:
@@ -90,6 +93,7 @@ class Pipeline:
         text = self._transcriber.transcribe(utt.samples, self._src)
         speaker = speaker_future.result()
         if not text:
+            log.info("%s utterance at %.1fs: empty transcript, dropped", utt.source.value, utt.t_start)
             return
         english = self._translator.translate(text, self._src, self._tgt)
         line = Line(

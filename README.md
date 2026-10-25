@@ -20,6 +20,13 @@ scripts/convert_asr.sh Chillarmo/whisper-base-armenian models/asr-base   # ASR m
 System audio is the `.monitor` source of your output device, so no loopback driver is needed on Linux
 (macOS needs BlackHole or similar). List sources with `meetai --list-devices`.
 
+### Troubleshooting: no system-audio lines
+
+The system source is the *monitor* of your output device, so it only carries sound while the output is **not
+muted** and something is playing. A muted output gives pure silence (`pactl list sinks | grep Mute`;
+`pactl set-sink-mute @DEFAULT_SINK@ 0` to unmute). Use `python scripts/live_check.py` to play a test clip
+through the pipeline.
+
 ## Run
 
 ```bash

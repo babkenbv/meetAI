@@ -5,6 +5,7 @@ pipeline wiring with fakes, error propagation, line format, device parsing, serv
 
 Manual / live (run before the interview):
 - [ ] `meetai --list-devices` shows a microphone and a monitor source; `--mic` / `--system` override defaults.
+- [ ] Output is not muted (`pactl list sinks | grep Mute`), otherwise the monitor is silent.
 - [ ] Mic and system audio are captured at the same time (speak while a video plays).
 - [ ] Mic speech is always labelled `Me`.
 - [ ] Two different voices on system audio get `Speaker 1` / `Speaker 2`; each keeps its label for the session.
