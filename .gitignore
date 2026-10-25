@@ -7,3 +7,4 @@ models/
 *.flac
 data/
 .env
+*.egg-info/

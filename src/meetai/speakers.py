@@ -21,12 +21,14 @@ class SpeechBrainEmbedder:
     def __init__(self, cache_dir: str = "models/spkrec-ecapa") -> None:
         import torch
         from speechbrain.inference.speaker import EncoderClassifier
+        from speechbrain.utils.fetching import LocalStrategy
 
         self._torch = torch
         self._model = EncoderClassifier.from_hparams(
             source="speechbrain/spkrec-ecapa-voxceleb",
             savedir=cache_dir,
             run_opts={"device": "cpu"},
+            local_strategy=LocalStrategy.COPY,  # real files, not symlinks into a deletable cache
         )
 
     def embed(self, samples: np.ndarray) -> np.ndarray:
@@ -43,7 +45,7 @@ class OnlineSpeakerClusterer:
     label of the previous system-audio utterance (Speaker 1 if there is none).
     """
 
-    def __init__(self, threshold: float = 0.55, min_embed_s: float = 1.0) -> None:
+    def __init__(self, threshold: float = 0.4, min_embed_s: float = 1.0) -> None:
         self._threshold = threshold
         self.min_embed_s = min_embed_s
         self._centroids: list[np.ndarray] = []

@@ -53,7 +53,8 @@ without touching the pipeline. The data model stores source and target language 
 | VAD | Silero VAD (ONNX) | Small, accurate, runs per 32 ms chunk. |
 | Speakers | SpeechBrain ECAPA embeddings + online cosine clustering | Works on a live stream; offline diarization (pyannote) needs the whole recording. |
 
-Reproduce: `python scripts/fetch_eval.py`, then `scripts/bench_asr.py`, `scripts/bench_translate.py`, `scripts/bench_e2e.py`.
+Reproduce: `python scripts/fetch_eval.py`, then `scripts/bench_asr.py`, `scripts/bench_translate.py`, `scripts/bench_e2e.py`;
+speakers: `python scripts/fetch_speakers.py` then `python scripts/eval_speakers.py`.
 Setup details are in `DECISIONS.md`. Downloads are large (about 3.5 GB originals; 0.9 GB after conversion) and
 `models/hf` can be deleted once `models/asr-base` and `models/nllb-600m-ct2` exist.
 
@@ -63,6 +64,7 @@ Setup details are in `DECISIONS.md`. Downloads are large (about 3.5 GB originals
 - Latency is ~3 s for one speaker, but can exceed 5 s when mic and system audio are busy at the same time
   (one CPU worker serializes ASR). Mic pickup of the speakers (echo) makes this worse and is out of scope.
 - Long utterances are cut at 6 s to bound latency, which can split a sentence and hurt translation.
-- Speaker labels: the threshold is untuned, very short clips (< 1 s) inherit the previous label, and similar voices can merge.
+- Speaker labels: the threshold (0.4) was tuned on clean English speech (7 speakers: right count, 100% purity), not on
+  Armenian call audio. Clips under 1 s inherit the previous label, and similar voices can merge.
 - Eastern Armenian (FLEURS hy_am) was used for evaluation; Western Armenian is untested.
 - Not yet measured: live accuracy with two real voices on a call.

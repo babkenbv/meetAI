@@ -19,7 +19,7 @@ class Config:
     min_speech_s: float = 0.25
     max_utterance_s: float = 6.0
     # Speaker identification (system audio only)
-    speaker_threshold: float = 0.55
+    speaker_threshold: float = 0.4
     min_embed_s: float = 1.0
 
     def asr_path(self) -> Path:

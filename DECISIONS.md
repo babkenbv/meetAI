@@ -32,5 +32,11 @@ Format: date · decision · why · status (Decided / Open / Unverified).
 - 2026-10-25 · Latency: max utterance 6 s (was 8 s), speaker embedding runs in parallel with ASR, all models warmed up at
   start (first MT call took 8.7 s cold). Replay benchmark (`scripts/bench_e2e.py`, 22 utterances): mean 1.8 s, max 2.6 s
   processing + 0.5 s VAD wait. Status: Decided.
-- 2026-10-25 · Speaker clustering threshold 0.55 is untuned: no multi-speaker ground truth yet. FLEURS has no speaker IDs
-  here. Needs real two-person recordings. Status: Open.
+- 2026-10-26 · Speaker clustering threshold 0.4 (was an untuned 0.55). Measured with `scripts/eval_speakers.py` on 140
+  clips / 7 known LibriSpeech speakers (English; no small Armenian set with speaker IDs exists), shuffled stream, 5 seeds:
+  threshold 0.55 split 7 speakers into 21.6 clusters on 2 s clips; threshold 0.4 gave 7.4 / 7.0 / 7.0 clusters at 2 / 4 / 6 s,
+  purity 100%. Different-speaker similarity p95 was 0.22 to 0.26, same-speaker mean 0.53 to 0.72. Caveats: clean read
+  English, not compressed call audio or Armenian; similar voices may merge at 0.4. Status: Decided; recheck on a real call.
+- 2026-10-26 · Bug found: SpeechBrain stored the speaker model as symlinks into the HF cache, so deleting the cache broke it.
+  Now loaded with `LocalStrategy.COPY`; verified offline with an empty HF cache. Lesson: verify offline operation
+  by running with an empty cache *before* deleting anything. Status: Fixed.
