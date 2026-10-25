@@ -1,0 +1,7 @@
+.venv
+.git
+web
+models
+data
+chats
+__pycache__

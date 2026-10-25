@@ -1,0 +1,38 @@
+# Models are mounted from ./models (never baked into images). Audio comes from the host's PulseAudio/PipeWire.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: meetai
+      POSTGRES_PASSWORD: meetai
+      POSTGRES_DB: meetai
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meetai"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: .
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgresql+psycopg://meetai:meetai@db:5432/meetai
+      PULSE_SERVER: unix:/run/user/1000/pulse/native
+      HF_HOME: /app/models/hf
+    volumes:
+      - ./models:/app/models
+      - /run/user/1000/pulse:/run/user/1000/pulse
+    ports: ["8000:8000"]
+
+  web:
+    build:
+      context: ./web
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    depends_on: [api]
+    ports: ["3000:3000"]
+
+volumes:
+  pgdata:
