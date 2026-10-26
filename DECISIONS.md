@@ -116,3 +116,11 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   second app instance (from an hour earlier) running at the same time, using 40% of RAM. Fix: `Session.start` now probes the mic for 1 s and
   fails loudly (DC offset > 0.1 or rms > 0.4) with the pactl command to run. Lesson: the earlier "mishearing" tests may partly have been
   made on a degraded mic; the live3 to live6 results (garbled words) should be rechecked now that the device is healthy. Status: Fixed.
+- 2026-10-27 · Mic incident, revised diagnosis. Measured: at the sound card (arecord plughw, bypassing PulseAudio) the signal clips (peak 1.00, std 0.49)
+  with a DC offset; through PulseAudio rms 0.49 constant. After a 100 Hz high-pass (kept: it removes the offset/drift) rms is still 0.27 to 0.43,
+  broadband (80% of energy 300 Hz to 8 kHz): loud noise, not just drift. Silero VAD max probability rose from 0.17 (raw) to 0.84 (filtered) while
+  the user talked, so speech is partly visible but buried. My first theory (PulseAudio 27% vs ALSA 92% gain mismatch) was WRONG: Pulse's
+  27% = -34 dB re base -60 dB = +26 dB, which matches ALSA +26 dB; re-applying it changed the gain by 0.75 dB only (92% -> 90%). Cause not found in
+  software; the same mic and settings were clean on previous days (rms 0.03 to 0.1). Candidates: loud environment, electrical noise/ground loop,
+  codec stuck after 9+ days uptime. Mitigations: high-pass filter in the pipeline (permanent), startup check now fails loudly when filtered noise
+  rms > 0.3 or > 1% samples clip, with hints. Status: Open (hardware/environment).

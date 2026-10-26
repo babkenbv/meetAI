@@ -8,6 +8,14 @@ from meetai.types import SAMPLE_RATE, AudioChunk, Line, Source, Utterance
 from meetai.vad import Segmenter
 
 
+# Speech stand-in: alternating samples (Nyquist frequency) pass the pipeline's high-pass, unlike a constant offset.
+ALT = np.tile(np.array([1.0, -1.0], np.float32), CHUNK_SAMPLES // 2)
+
+
+def loudness(chunk):
+    return float(np.abs(chunk).mean())
+
+
 class FakeAsr:
     def transcribe(self, samples, language):
         return "Բարև" if len(samples) else ""
@@ -34,7 +42,7 @@ def test_format_line_has_time_speaker_original_and_translation():
 
 def test_pipeline_end_to_end_with_fakes():
     lines = []
-    segs = {s: Segmenter(s, lambda x: float(x[0]), min_silence_s=0.2) for s in Source}
+    segs = {s: Segmenter(s, loudness, min_silence_s=0.2) for s in Source}
     p = Pipeline(
         segs,
         SpeakerLabeler(FakeEmbedder(), OnlineSpeakerClusterer()),
@@ -49,7 +57,7 @@ def test_pipeline_end_to_end_with_fakes():
     t = 0.0
     for source in (Source.MIC, Source.SYSTEM):
         for v in [1.0] * 40 + [0.0] * 20:
-            p.feed(AudioChunk(source, np.full(CHUNK_SAMPLES, v, np.float32), t))
+            p.feed(AudioChunk(source, v * ALT, t))
             t += CHUNK_SAMPLES / SAMPLE_RATE
     p.stop()
     p.check()
@@ -64,11 +72,11 @@ def test_worker_error_is_raised_by_check():
         def transcribe(self, samples, language):
             raise RuntimeError("model exploded")
 
-    segs = {s: Segmenter(s, lambda x: float(x[0]), min_silence_s=0.2) for s in Source}
+    segs = {s: Segmenter(s, loudness, min_silence_s=0.2) for s in Source}
     p = Pipeline(segs, SpeakerLabeler(FakeEmbedder(), OnlineSpeakerClusterer()), Boom(), FakeMt(), "hy", "en", [])
     p.start()
     for i, v in enumerate([1.0] * 40 + [0.0] * 20):
-        p.feed(AudioChunk(Source.MIC, np.full(CHUNK_SAMPLES, v, np.float32), i * 0.032))
+        p.feed(AudioChunk(Source.MIC, v * ALT, i * 0.032))
     p.stop()
     with pytest.raises(RuntimeError, match="model exploded"):
         p.check()

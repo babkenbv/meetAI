@@ -13,6 +13,7 @@ from typing import Callable
 import numpy as np
 
 from meetai.asr.base import Transcriber
+from meetai.audio.filters import HighPass
 from meetai.speakers import SpeakerLabeler
 from meetai.text import clean_transcript
 from meetai.translate.base import Translator
@@ -43,6 +44,7 @@ class Pipeline:
         accurate_max_s: float = 3.0,
     ) -> None:
         self._segmenters = segmenters
+        self._high_pass = {source: HighPass() for source in segmenters}  # per-stream filter state
         self._labeler = labeler
         self._transcriber = transcriber
         self._accurate = accurate_transcriber
@@ -90,6 +92,7 @@ class Pipeline:
             raise self._error
 
     def feed(self, chunk: AudioChunk) -> None:
+        chunk = AudioChunk(chunk.source, self._high_pass[chunk.source](chunk.samples), chunk.t_start)
         utt = self._segmenters[chunk.source].feed(chunk)
         if utt is not None:
             log.info("%s utterance %.1fs queued (backlog %d)", utt.source.value, len(utt.samples) / SAMPLE_RATE, self._queue.qsize())
