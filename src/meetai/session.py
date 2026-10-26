@@ -69,7 +69,7 @@ class Session:
         ]
 
     def start(self) -> None:
-        check_mic_signal(probe_source(self._mic), self._mic)  # fail loudly on a stuck mic before the slow warm-up
+        check_mic_signal(probe_source(self._mic, seconds=3.0), self._mic)  # fail loudly on a stuck mic before the slow warm-up
         self.pipeline.warm_up()
         self.pipeline.start()
         for c in self._captures:

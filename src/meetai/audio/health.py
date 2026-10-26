@@ -16,22 +16,32 @@ MAX_NOISE_RMS = 0.3  # after high-pass filtering: speech is ~0.1 to 0.3 and nois
 MAX_CLIPPED_FRACTION = 0.01  # samples at full scale; a healthy mic essentially never clips
 
 
+WINDOW_S = 0.5
+MAX_BAD_WINDOW_FRACTION = 0.5  # the faulty input alternates between clean and unusable moments; fail only if mostly unusable
+
+
 def check_mic_signal(samples: np.ndarray, device: str) -> None:
-    """Raises RuntimeError if the signal is silent, saturated or drowned in noise (speech cannot be detected then).
+    """Raises RuntimeError if the signal is silent, or mostly saturated or drowned in noise (speech cannot be detected).
 
     The slow drift / DC offset of the faulty input is removed by the same high-pass the pipeline uses, so it does not
-    count here: what matters is what the speech detector will actually see.
+    count here. Judged in short windows because the fault comes and goes within a second.
     """
     if len(samples) == 0:
         raise RuntimeError(f"Microphone {device!r} delivered no audio")
     filtered = HighPass()(samples)
-    rms = float(np.sqrt((filtered**2).mean()))
-    clipped = float((np.abs(samples) >= 0.999).mean())
-    if rms > MAX_NOISE_RMS or clipped > MAX_CLIPPED_FRACTION:
+    size = int(WINDOW_S * SAMPLE_RATE)
+    # Clipping is judged on the raw samples, noise on the filtered ones.
+    windows = [(filtered[i : i + size], samples[i : i + size]) for i in range(0, len(samples) - size + 1, size)]
+    bad = sum(
+        1
+        for f, raw in windows
+        if float(np.sqrt((f**2).mean())) > MAX_NOISE_RMS or float((np.abs(raw) >= 0.999).mean()) > MAX_CLIPPED_FRACTION
+    )
+    if windows and bad / len(windows) > MAX_BAD_WINDOW_FRACTION:
         raise RuntimeError(
-            f"Microphone {device!r} signal is unusable: noise rms {rms:.2f} after filtering, {clipped:.1%} of samples clipped. "
-            "Speech cannot be detected. Check for loud noise near the mic or a faulty/loose headset plug, try a headset, "
-            f"or re-open the device: pactl suspend-source {device} 1; pactl suspend-source {device} 0."
+            f"Microphone {device!r} signal is unusable: {bad} of {len(windows)} half-second windows were saturated or "
+            "drowned in noise. Speech cannot be detected. Check for loud noise near the mic or a faulty/loose headset plug, "
+            f"try a headset, or re-open the device: pactl suspend-source {device} 1; pactl suspend-source {device} 0."
         )
 
 

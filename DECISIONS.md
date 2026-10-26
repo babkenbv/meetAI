@@ -124,3 +124,7 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   software; the same mic and settings were clean on previous days (rms 0.03 to 0.1). Candidates: loud environment, electrical noise/ground loop,
   codec stuck after 9+ days uptime. Mitigations: high-pass filter in the pipeline (permanent), startup check now fails loudly when filtered noise
   rms > 0.3 or > 1% samples clip, with hints. Status: Open (hardware/environment).
+- 2026-10-27 · After `systemctl --user restart pulseaudio` (run by the user) the mic is still intermittent: 4 one-second probes gave rms 0.43 / 0.02 / 0.03 /
+  0.47 and up to 10% clipping, so it alternates between clean and unusable within seconds. The startup check was changed from one 1 s probe to
+  3 s judged in 0.5 s windows; it fails only if more than half the windows are saturated or noisy (3 of 3 real runs passed). Remaining risk: phrases that
+  fall in a bad moment are lost. Status: Open (hardware). Next: reboot, or use a headset mic, then re-measure ASR accuracy on a healthy signal.

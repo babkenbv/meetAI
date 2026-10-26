@@ -17,14 +17,20 @@ def test_dc_offset_alone_is_tolerated_because_the_pipeline_filters_it():
     check_mic_signal(np.full(16000, -0.38, np.float32) + noise(0.02), "mic")
 
 
-def test_loud_noise_fails_with_hint():
+def test_mostly_loud_noise_fails_with_hint():
     with pytest.raises(RuntimeError, match="unusable.*pactl suspend-source"):
-        check_mic_signal(np.clip(noise(0.45), -1, 1), "alsa_input.test")
+        check_mic_signal(np.clip(noise(0.45, 48000), -1, 1), "alsa_input.test")
 
 
-def test_clipping_fails():
-    with pytest.raises(RuntimeError, match="clipped"):
-        check_mic_signal(np.tile(np.array([1.0, -1.0], np.float32), 8000) * 0.02 + np.where(np.arange(16000) % 20 == 0, 1.0, 0.0), "mic")
+def test_mostly_clipped_signal_fails():
+    with pytest.raises(RuntimeError, match="unusable"):
+        check_mic_signal(np.clip(noise(2.0, 48000), -1, 1), "mic")
+
+
+def test_intermittent_fault_with_mostly_clean_audio_passes():
+    x = noise(0.03, 48000)
+    x[:8000] = np.clip(noise(0.6, 8000), -1, 1)  # one bad window out of six
+    check_mic_signal(x, "mic")
 
 
 def test_empty_signal_fails():
