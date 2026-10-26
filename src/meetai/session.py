@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 from meetai.asr.faster_whisper import FasterWhisperTranscriber
-from meetai.audio.capture import Capture
+from meetai.audio.capture import CHUNK_SAMPLES, Capture
 from meetai.config import Config
 from meetai.pipeline import Pipeline, Sink
 from meetai.speakers import OnlineSpeakerClusterer, SpeakerLabeler, SpeechBrainEmbedder
 from meetai.translate.nllb_ct2 import NllbTranslator
 from meetai.translate.opus_ct2 import OpusHyEnTranslator
 from meetai.translate.routing import ShortPhraseTranslator
-from meetai.types import Source
+from meetai.types import SAMPLE_RATE, Source
 from meetai.vad import Segmenter, load_silero
 
 
@@ -27,6 +27,7 @@ class Session:
                 cfg.min_silence_s,
                 cfg.min_speech_s,
                 cfg.max_utterance_s,
+                pad_chunks=round(cfg.pre_roll_s * SAMPLE_RATE / CHUNK_SAMPLES),
             )
             for src in Source
         }

@@ -98,3 +98,8 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   7 read sentences (none contain those words) small WER went 45.1% -> 37.8%, CER 10.7% -> 9.5%; FLEURS(20) unchanged (30.1% -> 30.0%).
   The same prompt HURT base on FLEURS (29.8% -> 34.8%), so it is applied to the accurate model only. Caveat: one speaker, 7 sentences
   and ~5 greeting clips. Status: Decided.
+- 2026-10-26 · Pre-roll raised from 0.13 s to 0.3 s. Evidence: on the user's 5 one-word clips (data/live6), 2 were already loud in
+  the first 0.13 s (rms 0.13 to 0.15 at t=0), i.e. the first sound of the word was cut off before the VAD fired. The ASR mishears
+  clipped onsets (Ո՞ւղջույն, Նշբես եք for Ինչպե՞ս եք). Not yet verified that it fixes the mishearing (no replay possible on already
+  clipped audio). Also added the formal "ինչպես եք" to the accurate model's prompt. Mic noise floor is rms 0.04 vs speech 0.15 to 0.3
+  (fan noise); a headset would likely help more. Status: Decided, unverified.

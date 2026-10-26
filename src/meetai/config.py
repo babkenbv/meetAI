@@ -19,7 +19,7 @@ class Config:
     asr_accurate_max_s: float = 2.0
     # Prompt priming for the accurate model only: it heard "Ողջույն" as "Ողջուհին" without it, and WER on 7 read sentences
     # (none containing these words) fell from 45.1% to 37.8%. It hurt the base model on FLEURS (29.8% -> 34.8%).
-    asr_accurate_prompt: str | None = "Բարև, ողջույն, շնորհակալություն, ինչպես ես, լավ եմ։"
+    asr_accurate_prompt: str | None = "Բարև, ողջույն, շնորհակալություն, ինչպես ես, ինչպես եք, լավ եմ։"
     asr_compute_type: str = "int8"
     cpu_threads: int = 4
     # Segmentation
@@ -27,6 +27,9 @@ class Config:
     min_silence_s: float = 0.5
     min_speech_s: float = 0.25
     max_utterance_s: float = 6.0
+    # Audio kept from before the detector fired: it needs ~100 ms of speech to trigger, so with 0.13 s the first sound of a
+    # word was clipped in 2 of 5 of the user's one-word clips (loud at t=0). Whisper models mishear clipped onsets.
+    pre_roll_s: float = 0.3
     # Speaker identification (system audio only)
     speaker_threshold: float = 0.4
     min_embed_s: float = 1.0

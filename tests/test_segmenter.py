@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from meetai.audio.capture import CHUNK_SAMPLES
 from meetai.types import SAMPLE_RATE, AudioChunk, Source
@@ -51,3 +52,11 @@ def test_wrong_chunk_size_fails_loudly():
 
     with pytest.raises(ValueError):
         make().feed(AudioChunk(Source.MIC, np.zeros(100, np.float32), 0.0))
+
+
+def test_pre_roll_keeps_audio_from_before_speech_onset():
+    seg = make(min_silence_s=0.2, pad_chunks=10)
+    (utt,) = run(seg, "." * 30 + "s" * 20 + "." * 30)
+    # 10 pre-roll chunks + 20 speech chunks + at least the 6 chunks of trailing silence that end the utterance
+    assert len(utt.samples) >= 36 * CHUNK_SAMPLES
+    assert utt.t_start == pytest.approx((30 - 10) * CHUNK_S)
