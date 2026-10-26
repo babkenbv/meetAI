@@ -29,3 +29,17 @@ def test_websocket_sends_initial_status(client):
 
 def test_stop_without_session_is_noop(client):
     assert client.post("/api/sessions/stop").json() == {"running": False}
+
+
+def test_disconnected_websocket_client_is_unsubscribed(client):
+    import time
+
+    hub = client.app.state.hub
+    with client.websocket_connect("/ws") as ws:
+        ws.receive_json()
+        assert hub.client_count == 1
+    for _ in range(50):  # the server notices the disconnect asynchronously
+        if hub.client_count == 0:
+            break
+        time.sleep(0.05)
+    assert hub.client_count == 0

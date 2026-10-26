@@ -45,6 +45,10 @@ class Hub:
     def unsubscribe(self, q: asyncio.Queue) -> None:
         self._clients.discard(q)
 
+    @property
+    def client_count(self) -> int:
+        return len(self._clients)
+
     def publish(self, message: dict) -> None:
         assert self._loop is not None
         self._loop.call_soon_threadsafe(self._fanout, message)
@@ -140,13 +144,23 @@ def create_app(cfg: Config | None = None) -> FastAPI:
     async def ws(socket: WebSocket):
         await socket.accept()
         q = hub.subscribe()
-        try:
+
+        async def send() -> None:
             await socket.send_json({"type": "status", "running": state["session"] is not None})
             while True:
                 await socket.send_json(await q.get())
-        except WebSocketDisconnect:
-            pass
+
+        async def watch_disconnect() -> None:
+            while True:
+                await socket.receive_text()  # raises WebSocketDisconnect when the client goes away
+
+        tasks = [asyncio.create_task(send()), asyncio.create_task(watch_disconnect())]
+        try:
+            await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
         finally:
+            for t in tasks:
+                t.cancel()
             hub.unsubscribe(q)
 
+    app.state.hub = hub
     return app
