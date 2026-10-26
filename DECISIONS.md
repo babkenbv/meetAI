@@ -40,3 +40,10 @@ Format: date · decision · why · status (Decided / Open / Unverified).
 - 2026-10-26 · Bug found: SpeechBrain stored the speaker model as symlinks into the HF cache, so deleting the cache broke it.
   Now loaded with `LocalStrategy.COPY`; verified offline with an empty HF cache. Lesson: verify offline operation
   by running with an empty cache *before* deleting anything. Status: Fixed.
+- 2026-10-26 · Server verified with real models: POST /api/sessions, WebSocket line stream and PostgreSQL-compatible storage
+  (tested on SQLite) delivered 4 correct lines with latency. Web page connects and lists devices (checked in a browser).
+  Bug fixed: WebSocket handler never noticed client disconnects, so dead clients blocked server shutdown. Status: Fixed.
+- 2026-10-26 · Finding: a muted default output makes the system-audio monitor silent (no error is raised). Documented in
+  README/TESTS rather than adding automatic handling. Status: Open (could warn when the monitor is silent at start).
+- 2026-10-26 · Finding: when speakers feed the mic (echo, out of scope), every phrase is processed twice and latency rises
+  to 4.5 to 6.8 s because one worker serializes ASR. Headphones avoid it. Status: Open.

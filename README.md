@@ -75,3 +75,15 @@ Setup details are in `DECISIONS.md`. Downloads are large (about 3.5 GB originals
   Armenian call audio. Clips under 1 s inherit the previous label, and similar voices can merge.
 - Eastern Armenian (FLEURS hy_am) was used for evaluation; Western Armenian is untested.
 - Not yet measured: live accuracy with two real voices on a call.
+
+## Verification status
+
+| Area | Status |
+|---|---|
+| Unit tests (23) | Pass |
+| CLI live run, system audio, real models | Works (played FLEURS clips; lines in 2.6 to 4.5 s) |
+| Speaker clustering | Tuned on 7 English speakers; not yet checked on a real Armenian call |
+| API + WebSocket + DB with real models | Works (SQLite); PostgreSQL via Docker not run |
+| Web page | Connects, lists devices; live transcript view not watched end to end in the browser |
+| Docker images | `docker compose config` valid; images not built |
+| Latency with echo (speakers into mic) | Can exceed 5 s |
