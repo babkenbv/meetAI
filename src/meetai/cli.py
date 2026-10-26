@@ -18,6 +18,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--asr-model", default=defaults.asr_model, help="fast ASR model, used for long utterances")
     p.add_argument("--asr-accurate-model", default=defaults.asr_accurate_model, help="slower, more accurate model for short phrases; '' disables")
     p.add_argument("--translation-model", default=defaults.translation_model)
+    p.add_argument("--short-translation-model", default=defaults.translation_short_model, help="model for 1-2 word phrases; '' disables")
     p.add_argument("--save-utterances", metavar="DIR", help="debug: save each utterance (wav) and transcript to DIR")
     p.add_argument("--show-latency", action="store_true", help="append end-of-phrase -> output latency")
     args = p.parse_args(argv)
@@ -34,6 +35,7 @@ def main(argv: list[str] | None = None) -> int:
         asr_model=args.asr_model,
         asr_accurate_model=args.asr_accurate_model or None,
         translation_model=args.translation_model,
+        translation_short_model=args.short_translation_model or None,
     )
     mic = args.mic or default_source("mic")
     system = args.system or default_source("system")

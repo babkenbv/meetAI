@@ -68,7 +68,9 @@ class Pipeline:
         for t in (self._transcriber, self._accurate):
             if t is not None:
                 t.transcribe(noise, self._src)
+        # Two inputs so that both the short-phrase and the sentence translator are warmed (cold first call took 8 s).
         self._translator.translate("բարև", self._src, self._tgt)
+        self._translator.translate("բարև ձեզ բոլորին և ողջույն", self._src, self._tgt)
 
     def start(self) -> None:
         self._worker.start()

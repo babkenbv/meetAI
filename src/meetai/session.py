@@ -8,6 +8,8 @@ from meetai.config import Config
 from meetai.pipeline import Pipeline, Sink
 from meetai.speakers import OnlineSpeakerClusterer, SpeakerLabeler, SpeechBrainEmbedder
 from meetai.translate.nllb_ct2 import NllbTranslator
+from meetai.translate.opus_ct2 import OpusHyEnTranslator
+from meetai.translate.routing import ShortPhraseTranslator
 from meetai.types import Source
 from meetai.vad import Segmenter, load_silero
 
@@ -32,11 +34,16 @@ class Session:
             SpeechBrainEmbedder(),
             OnlineSpeakerClusterer(cfg.speaker_threshold, cfg.min_embed_s),
         )
+        translator = NllbTranslator(cfg.translation_model, cfg.translation_tokenizer, cfg.cpu_threads)
+        if cfg.translation_short_model:
+            translator = ShortPhraseTranslator(
+                OpusHyEnTranslator(cfg.translation_short_model, cfg.cpu_threads), translator, cfg.short_max_words
+            )
         self.pipeline = Pipeline(
             segmenters,
             labeler,
             FasterWhisperTranscriber(cfg.asr_model, cfg.asr_compute_type, cfg.cpu_threads),
-            NllbTranslator(cfg.translation_model, cfg.translation_tokenizer, cfg.cpu_threads),
+            translator,
             cfg.src_lang,
             cfg.tgt_lang,
             sinks,

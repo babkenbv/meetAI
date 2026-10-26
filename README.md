@@ -14,6 +14,7 @@ PostgreSQL, Docker. CPU is the baseline; a GPU is an optimization, not a require
 python3 -m virtualenv .venv && . .venv/bin/activate
 pip install -e ".[server,dev]"
 scripts/convert_nllb.sh                   # NLLB-200 600M -> models/nllb-600m-ct2
+scripts/convert_opus.sh                    # OPUS-MT hy-en -> models/opus-hy-en-ct2
 scripts/convert_asr.sh Chillarmo/whisper-base-armenian models/asr-base   # ASR model
 ```
 
@@ -56,7 +57,7 @@ without touching the pipeline. The data model stores source and target language 
 | Part | Choice | Why |
 |---|---|---|
 | ASR | `Chillarmo/whisper-base-armenian`, faster-whisper int8 | WER 33% / CER 9% on 40 FLEURS hy_am clips, RTF 0.14. The small model is 27% / 8.9% but 2.5x slower and breaks the 5 s budget. BuzzASR (large-v3 size, 3.1 GB) was rejected as too heavy for CPU. |
-| Translation | NLLB-200 distilled 600M, CTranslate2 int8 | Fluent hy→en on FLEURS references, ~1 s per sentence. CC-BY-NC license. |
+| Translation | NLLB-200 distilled 600M (sentences) + OPUS-MT hy-en (1-2 word phrases), CTranslate2 int8 | NLLB BLEU 39.7 on 40 FLEURS sentences but guesses on one-word greetings; OPUS gets greetings right but BLEU 20.7 on sentences. MADLAD-400 3B was measured too: no better on sentences, 5.8 GB RAM. NLLB is CC-BY-NC. |
 | VAD | Silero VAD (ONNX) | Small, accurate, runs per 32 ms chunk. |
 | Speakers | SpeechBrain ECAPA embeddings + online cosine clustering | Works on a live stream; offline diarization (pyannote) needs the whole recording. |
 

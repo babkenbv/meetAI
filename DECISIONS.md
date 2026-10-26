@@ -83,3 +83,13 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   in faster-whisper). Dropped. Not tried: other small/base fine-tunes, a headset mic. Status: Rejected.
 - 2026-10-26 · A broken trailing character ("կի�") came from the short-clip token cap cutting a UTF-8 character; `clean_transcript`
   now strips it. Status: Fixed.
+- 2026-10-26 · Translation model comparison (user disliked NLLB-600M). FLEURS hy→en, sacrebleu, 4 threads, CT2 int8:
+  | model | 40 sentences BLEU / chrF | same 8 sentences BLEU / chrF | s/sentence | RAM | 10 short phrases (my judgment) |
+  |---|---|---|---|---|---|
+  | NLLB-200 distilled 600M, beam 4 | 39.7 / 65.0 | 44.8 / 68.6 | 1.8 | ~0.7 GB | ~5 right (Բարև → "What's going on?") |
+  | MADLAD-400 3B-MT (community int8: Nextcloud-AI/madlad400-3b-mt-ct2-int8) | not run | 38.8 / 63.5 | 5.1 (max 9.8) | 5.8 GB RSS | 10 right (Բարև → "Hello.") |
+  | OPUS-MT hy-en (Helsinki-NLP, 2019) | 20.7 / 45.7 | not run | 0.3 | ~0.1 GB | 8 right (Բարև → "Hi", Ցտեսություն → "TEPA") |
+  MADLAD is best on short phrases but worse than NLLB on sentences, 3x slower, and 5.8 GB RSS on an 11 GB machine that is
+  already swapping (rejected). OPUS is best per second on greetings but poor on sentences. Decision: hybrid. Inputs of at most
+  2 words use OPUS-MT, everything else NLLB. Caveats: the 10-phrase judgment is mine and small; MADLAD was timed on 8 sentences.
+  Status: Decided. The MADLAD files remain in models/madlad-3b-ct2 (3 GB) for a possible GPU laptop.
