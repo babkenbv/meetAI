@@ -72,3 +72,70 @@ def test_worker_error_is_raised_by_check():
     p.stop()
     with pytest.raises(RuntimeError, match="model exploded"):
         p.check()
+
+
+class NamedAsr:
+    def __init__(self, name):
+        self.name = name
+
+    def transcribe(self, samples, language):
+        return self.name
+
+
+def _run(duration_s, accurate=True, preload_queue=False):
+    lines = []
+    seg = {s: Segmenter(s, lambda x: 0.0) for s in Source}
+    p = Pipeline(
+        seg,
+        SpeakerLabeler(FakeEmbedder(), OnlineSpeakerClusterer()),
+        NamedAsr("fast"),
+        FakeMt(),
+        "hy",
+        "en",
+        [lines.append],
+        accurate_transcriber=NamedAsr("accurate") if accurate else None,
+        accurate_max_s=3.0,
+    )
+    if preload_queue:
+        p._queue.put(object())
+    utt = Utterance(Source.SYSTEM, np.zeros(int(duration_s * SAMPLE_RATE), np.float32), 0.0, duration_s)
+    p._process(utt)
+    return lines[0].src_text
+
+
+def test_short_idle_utterance_uses_accurate_model():
+    assert _run(1.5) == "accurate"
+
+
+def test_long_utterance_uses_fast_model():
+    assert _run(5.0) == "fast"
+
+
+def test_backlog_forces_fast_model():
+    assert _run(1.5, preload_queue=True) == "fast"
+
+
+def test_without_accurate_model_always_fast():
+    assert _run(1.5, accurate=False) == "fast"
+
+
+def test_slow_accurate_path_pauses_accurate_model_then_retries():
+    now = [0.0]
+
+    class SlowAccurate:
+        def transcribe(self, samples, language):
+            now[0] += 5.0  # slower than the budget
+            return "accurate"
+
+    lines = []
+    seg = {s: Segmenter(s, lambda x: 0.0) for s in Source}
+    p = Pipeline(
+        seg, SpeakerLabeler(FakeEmbedder(), OnlineSpeakerClusterer()), NamedAsr("fast"), FakeMt(), "hy", "en",
+        [lines.append], clock=lambda: now[0], accurate_transcriber=SlowAccurate(), accurate_max_s=3.0,
+    )
+    utt = Utterance(Source.SYSTEM, np.zeros(SAMPLE_RATE, np.float32), 0.0, 1.0)
+    p._process(utt)
+    p._process(utt)  # still inside the pause
+    now[0] += 31.0
+    p._process(utt)  # pause over: the accurate model is tried again
+    assert [l.src_text for l in lines] == ["accurate", "fast", "accurate"]

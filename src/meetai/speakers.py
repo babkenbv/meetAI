@@ -18,11 +18,13 @@ class SpeakerEmbedder(Protocol):
 class SpeechBrainEmbedder:
     """ECAPA-TDNN speaker embeddings (SpeechBrain), run locally on CPU."""
 
-    def __init__(self, cache_dir: str = "models/spkrec-ecapa") -> None:
+    def __init__(self, cache_dir: str = "models/spkrec-ecapa", threads: int = 1) -> None:
         import torch
         from speechbrain.inference.speaker import EncoderClassifier
         from speechbrain.utils.fetching import LocalStrategy
 
+        # Runs in parallel with ASR: one thread keeps the two from fighting over the same cores.
+        torch.set_num_threads(threads)
         self._torch = torch
         self._model = EncoderClassifier.from_hparams(
             source="speechbrain/spkrec-ecapa-voxceleb",

@@ -27,15 +27,20 @@ def main() -> None:
     ap.add_argument("--max-utterance", type=float, default=Config.max_utterance_s)
     ap.add_argument("--threads", type=int, default=Config.cpu_threads)
     ap.add_argument("--asr", default=Config.asr_model)
+    ap.add_argument("--accurate", default=Config.asr_accurate_model or "", help="accurate model for short phrases; '' disables")
     args = ap.parse_args()
-    cfg = Config(max_utterance_s=args.max_utterance, cpu_threads=args.threads, asr_model=args.asr)
+    cfg = Config(max_utterance_s=args.max_utterance, cpu_threads=args.threads, asr_model=args.asr, asr_accurate_model=args.accurate or None)
 
     asr = FasterWhisperTranscriber(cfg.asr_model, cfg.asr_compute_type, cfg.cpu_threads)
     mt = NllbTranslator(cfg.translation_model, cfg.translation_tokenizer, cfg.cpu_threads)
     labeler = SpeakerLabeler(SpeechBrainEmbedder(), OnlineSpeakerClusterer(cfg.speaker_threshold, cfg.min_embed_s))
     seg = Segmenter(Source.SYSTEM, load_silero(), cfg.vad_threshold, cfg.min_silence_s, cfg.min_speech_s, cfg.max_utterance_s)
     lines = []
-    pipe = Pipeline({Source.SYSTEM: seg}, labeler, asr, mt, "hy", "en", [lines.append])
+    accurate = FasterWhisperTranscriber(cfg.asr_accurate_model, cfg.asr_compute_type, cfg.cpu_threads) if cfg.asr_accurate_model else None
+    pipe = Pipeline(
+        {Source.SYSTEM: seg}, labeler, asr, mt, "hy", "en", [lines.append],
+        accurate_transcriber=accurate, accurate_max_s=cfg.asr_accurate_max_s,
+    )
     pipe.warm_up()
 
     gap = np.zeros(SAMPLE_RATE * 1, np.float32)

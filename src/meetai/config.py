@@ -11,6 +11,9 @@ class Config:
     asr_model: str = "models/asr-base"
     translation_model: str = "models/nllb-600m-ct2"
     translation_tokenizer: str = "models/nllb-600m-ct2"
+    # Accurate model: used only for short utterances while nothing is queued (its cost is ~2.7 s even for 1 s of audio).
+    asr_accurate_model: str | None = "models/asr"
+    asr_accurate_max_s: float = 2.0
     asr_compute_type: str = "int8"
     cpu_threads: int = 4
     # Segmentation

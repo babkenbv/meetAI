@@ -41,6 +41,12 @@ class Session:
             cfg.tgt_lang,
             sinks,
             utterance_dir=utterance_dir,
+            accurate_transcriber=(
+                FasterWhisperTranscriber(cfg.asr_accurate_model, cfg.asr_compute_type, cfg.cpu_threads)
+                if cfg.asr_accurate_model
+                else None
+            ),
+            accurate_max_s=cfg.asr_accurate_max_s,
         )
         self._captures = [
             Capture(Source.MIC, mic, self.pipeline.feed, self.pipeline.clock, self.pipeline.fail),

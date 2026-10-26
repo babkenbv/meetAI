@@ -58,3 +58,13 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   hidden fallback). The small ASR model heard "Լավ եմ" correctly where base dropped "եմ", but costs ~2.8 s on 1 s clips.
   Status: Open.
 - 2026-10-26 · `--save-utterances DIR` saves each utterance's audio and transcript (data/ is git-ignored) for offline comparison.
+- 2026-10-26 · Two ASR models: base (fast) for long utterances, small (accurate) for utterances <= 2 s when nothing is queued.
+  On the user's 6 short recordings small heard "Բարև" every time and "Լավ եմ" correctly; base misheard "Բարավ" and dropped
+  "եմ". Beam 5 did not help base (worse). Small costs ~2.7 s even for 1 s clips (30 s input padding), so it self-limits: if
+  an accurate-path utterance exceeds 3.8 s (5 s - 0.5 s VAD - margin), the fast model is used for 30 s, then it retries.
+  Reason: Chrome (call app) and CPU heat made timings vary by up to 2x during testing. Status: Decided.
+- 2026-10-26 · Tried and reverted: capping ASR output at 22 tokens/s + 6 (to stop hallucination loops). It raised FLEURS WER
+  from 33.2% to 45.9% and did not reduce latency (likely interacts with Whisper's temperature fallback). Lesson: measure
+  before keeping. Hallucinated long text on sub-second clips remains an open issue. Status: Rejected.
+- 2026-10-26 · NLLB n-best check: for Բարև the 600M model's top 6 candidates are all conversational ("How are you?",
+  "What's up?"), none is "Hi". Not fixable by decoding options. Status: Known limitation.
