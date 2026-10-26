@@ -17,10 +17,17 @@ class OpusHyEnTranslator:
         self._beam_size = beam_size
 
     def translate(self, text: str, src_lang: str, tgt_lang: str) -> str:
+        return self.translate_scored(text, src_lang, tgt_lang)[0]
+
+    def translate_scored(self, text: str, src_lang: str, tgt_lang: str) -> tuple[str, float]:
+        """Returns (translation, confidence). Confidence is the mean token log-probability: 0 is certain, lower is less sure."""
         if (src_lang, tgt_lang) != ("hy", "en"):
             raise ValueError(f"opus-mt-hy-en only translates hy -> en, not {src_lang} -> {tgt_lang}")
         if not text.strip():
-            return ""
+            return "", 0.0
         tokens = self._tok.convert_ids_to_tokens(self._tok.encode(text))
-        result = self._translator.translate_batch([tokens], beam_size=self._beam_size, max_decoding_length=100)
-        return self._tok.decode(self._tok.convert_tokens_to_ids(result[0].hypotheses[0]), skip_special_tokens=True).strip()
+        result = self._translator.translate_batch(
+            [tokens], beam_size=self._beam_size, max_decoding_length=100, return_scores=True
+        )[0]
+        out = self._tok.decode(self._tok.convert_tokens_to_ids(result.hypotheses[0]), skip_special_tokens=True)
+        return out.strip(), float(result.scores[0])

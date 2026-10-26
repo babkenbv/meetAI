@@ -11,9 +11,10 @@ class Config:
     asr_model: str = "models/asr-base"
     translation_model: str = "models/nllb-600m-ct2"
     translation_tokenizer: str = "models/nllb-600m-ct2"
-    # Inputs of at most `short_max_words` words go to this model (greetings), longer ones to the NLLB model above.
+    # One-word inputs go to this model when it is confident (greetings); everything else to the NLLB model above.
     translation_short_model: str | None = "models/opus-hy-en-ct2"
-    short_max_words: int = 2
+    short_max_words: int = 1
+    short_min_confidence: float = -1.5
     # Accurate model: used only for short utterances while nothing is queued (its cost is ~2.7 s even for 1 s of audio).
     asr_accurate_model: str | None = "models/asr"
     asr_accurate_max_s: float = 2.0

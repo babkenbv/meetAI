@@ -103,3 +103,10 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   clipped onsets (Ո՞ւղջույն, Նշբես եք for Ինչպե՞ս եք). Not yet verified that it fixes the mishearing (no replay possible on already
   clipped audio). Also added the formal "ինչպես եք" to the accurate model's prompt. Mic noise floor is rms 0.04 vs speech 0.15 to 0.3
   (fan noise); a headset would likely help more. Status: Decided, unverified.
+- 2026-10-26 · Short-phrase routing revised. The user's "Իսկ դուք" went to OPUS-MT under the 2-word rule and came out "And you are"
+  (NLLB: "What about you?"). A 26-phrase check (`scripts/eval_phrases.py`, my own labels, indicative only): OPUS 18/26, NLLB 18/26, a
+  tie by word count, but with complementary errors (OPUS: greetings right, junk like "TEPA" when unsure; NLLB the reverse).
+  Tried a candidate reranker (both models score both models' top-2): 20/26, still wrong on Բարև; not adopted (complexity, headline
+  case fails). Adopted: one-word inputs go to OPUS only if its mean token log-prob is >= -1.5 (junk scored -2.5 to -1.65, correct
+  "Hi" -1.1 to -1.3), else NLLB; 2+ words always NLLB. Result 21/26. Caveat: the -1.5 threshold was chosen on the same 26 phrases,
+  so real gains are likely smaller. Status: Decided.

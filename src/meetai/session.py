@@ -38,7 +38,10 @@ class Session:
         translator = NllbTranslator(cfg.translation_model, cfg.translation_tokenizer, cfg.cpu_threads)
         if cfg.translation_short_model:
             translator = ShortPhraseTranslator(
-                OpusHyEnTranslator(cfg.translation_short_model, cfg.cpu_threads), translator, cfg.short_max_words
+                OpusHyEnTranslator(cfg.translation_short_model, cfg.cpu_threads),
+                translator,
+                cfg.short_max_words,
+                cfg.short_min_confidence,
             )
         self.pipeline = Pipeline(
             segmenters,
