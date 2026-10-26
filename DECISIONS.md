@@ -68,3 +68,9 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   before keeping. Hallucinated long text on sub-second clips remains an open issue. Status: Rejected.
 - 2026-10-26 · NLLB n-best check: for Բարև the 600M model's top 6 candidates are all conversational ("How are you?",
   "What's up?"), none is "Hi". Not fixable by decoding options. Status: Known limitation.
+- 2026-10-26 · Short-clip hallucination: on ~1 s clips the small model sometimes decoded ~10 invented words (88 chars), costing
+  up to 5.0 s. Not caused by temperature fallback (identical with fallback off). Volume normalization and 0.5 s padding did not help
+  (normalization made it worse: one clip 24 s). Fix: cap output at 22 tokens/s + 6 for clips under 4 s only. Result on the user's
+  11 clips: small max 5.0 s to 3.0 s, longest text 88 to 25 chars; FLEURS WER unchanged (29.8% base / 30.1% small on 20 clips).
+  Note: on FLEURS the small model is no clearly better than base (30.1% vs 29.8% on 20 clips; 27.3% vs 33.2% on 40); its edge
+  is on the user's short greetings ("Բարև" 5/5 vs 3/5). Status: Decided, but the evidence for small is thin (11 clips, one speaker).

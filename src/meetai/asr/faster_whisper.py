@@ -5,6 +5,14 @@ from pathlib import Path
 import numpy as np
 
 from meetai.languages import whisper_code
+from meetai.types import SAMPLE_RATE
+
+# Short clips: the models sometimes invent ~10 words from a 1 s clip, which also costs ~3 s of decoding. Armenian speech
+# needs ~14 tokens/s (max 19 on FLEURS), so cap the output at 22 tokens/s + 6. Applied to short clips only: capping all
+# clips raised FLEURS WER from 33% to 46% (see DECISIONS.md).
+SHORT_CLIP_S = 4.0
+MAX_TOKENS_PER_SECOND = 22
+MAX_TOKENS_SLACK = 6
 
 
 class FasterWhisperTranscriber:
@@ -21,11 +29,14 @@ class FasterWhisperTranscriber:
         )
 
     def transcribe(self, samples: np.ndarray, language: str) -> str:
+        seconds = len(samples) / SAMPLE_RATE
+        limit = {"max_new_tokens": int(seconds * MAX_TOKENS_PER_SECOND) + MAX_TOKENS_SLACK} if seconds < SHORT_CLIP_S else {}
         segments, _ = self._model.transcribe(
             samples,
             language=whisper_code(language),
             beam_size=1,
             condition_on_previous_text=False,
             vad_filter=False,
+            **limit,
         )
         return " ".join(s.text.strip() for s in segments).strip()
