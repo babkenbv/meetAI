@@ -110,3 +110,9 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   case fails). Adopted: one-word inputs go to OPUS only if its mean token log-prob is >= -1.5 (junk scored -2.5 to -1.65, correct
   "Hi" -1.1 to -1.3), else NLLB; 2+ words always NLLB. Result 21/26. Caveat: the -1.5 threshold was chosen on the same 26 phrases,
   so real gains are likely smaller. Status: Decided.
+- 2026-10-27 · Incident: "it doesn't get anything I say". The mic source had silently gone into a bad state: constant DC offset -0.38, rms 0.49,
+  energy at 0 to 2 Hz, Silero VAD max probability 0.17 (no speech) over 20 s of the user talking. Earlier the same mic gave rms 0.03 to 0.1.
+  Not a software bug; `pactl suspend-source <mic> 1; ... 0` (re-open the device) fixed it (mean -0.005, rms 0.029). Also found a stale
+  second app instance (from an hour earlier) running at the same time, using 40% of RAM. Fix: `Session.start` now probes the mic for 1 s and
+  fails loudly (DC offset > 0.1 or rms > 0.4) with the pactl command to run. Lesson: the earlier "mishearing" tests may partly have been
+  made on a degraded mic; the live3 to live6 results (garbled words) should be rechecked now that the device is healthy. Status: Fixed.

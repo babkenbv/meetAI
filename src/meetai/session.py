@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from meetai.asr.faster_whisper import FasterWhisperTranscriber
 from meetai.audio.capture import CHUNK_SAMPLES, Capture
+from meetai.audio.health import check_mic_signal, probe_source
 from meetai.config import Config
 from meetai.pipeline import Pipeline, Sink
 from meetai.speakers import OnlineSpeakerClusterer, SpeakerLabeler, SpeechBrainEmbedder
@@ -61,12 +62,14 @@ class Session:
             ),
             accurate_max_s=cfg.asr_accurate_max_s,
         )
+        self._mic = mic
         self._captures = [
             Capture(Source.MIC, mic, self.pipeline.feed, self.pipeline.clock, self.pipeline.fail),
             Capture(Source.SYSTEM, system, self.pipeline.feed, self.pipeline.clock, self.pipeline.fail),
         ]
 
     def start(self) -> None:
+        check_mic_signal(probe_source(self._mic), self._mic)  # fail loudly on a stuck mic before the slow warm-up
         self.pipeline.warm_up()
         self.pipeline.start()
         for c in self._captures:
