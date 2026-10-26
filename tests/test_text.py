@@ -15,3 +15,7 @@ def test_keeps_armenian_punctuation_and_inner_words():
 def test_collapses_spaces_and_handles_only_artifacts():
     assert clean_transcript("  a   b  ") == "a b"
     assert clean_transcript("- …") == ""
+
+
+def test_drops_half_character_left_by_truncated_decoding():
+    assert clean_transcript("Այդպիսով կի\ufffd") == "Այդպիսով կի"

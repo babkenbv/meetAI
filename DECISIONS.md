@@ -74,3 +74,12 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   11 clips: small max 5.0 s to 3.0 s, longest text 88 to 25 chars; FLEURS WER unchanged (29.8% base / 30.1% small on 20 clips).
   Note: on FLEURS the small model is no clearly better than base (30.1% vs 29.8% on 20 clips; 27.3% vs 33.2% on 40); its edge
   is on the user's short greetings ("Բարև" 5/5 vs 3/5). Status: Decided, but the evidence for small is thin (11 clips, one speaker).
+- 2026-10-26 · ASR on the user's own voice (7 FLEURS sentences read aloud, `scripts/record_eval.py`; clip 0 was a greeting, excluded):
+  base WER 52.6% / CER 16.2% (1.2 to 1.5 s); small WER 45.1% / CER 10.7% (3.3 to 4.7 s). FLEURS studio speakers give 30% /
+  9% for the same models, so voice, mic and conversational speech cost roughly 20 points of WER. Most errors are near-miss
+  spellings (սեզոնի → սազոնեի). Beam 3/5, no-timestamps decoding gave no gain on base. Small is clearly better on this voice but
+  3 to 5 s for 5-6 s sentences, which breaks the 5 s budget with translation and the VAD wait. Status: Known limitation.
+- 2026-10-26 · Tried `yervandgaloyan/whisper-base-hy` as an alternative base model: incompatible (loads as English-only tokenizer, crashes
+  in faster-whisper). Dropped. Not tried: other small/base fine-tunes, a headset mic. Status: Rejected.
+- 2026-10-26 · A broken trailing character ("կի�") came from the short-clip token cap cutting a UTF-8 character; `clean_transcript`
+  now strips it. Status: Fixed.
