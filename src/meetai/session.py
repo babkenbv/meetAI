@@ -13,7 +13,9 @@ from meetai.vad import Segmenter, load_silero
 
 
 class Session:
-    def __init__(self, cfg: Config, mic: str, system: str, sinks: list[Sink]) -> None:
+    def __init__(
+        self, cfg: Config, mic: str, system: str, sinks: list[Sink], utterance_dir: str | None = None
+    ) -> None:
         # Silero VAD keeps internal state, so each source gets its own model instance.
         segmenters = {
             src: Segmenter(
@@ -38,6 +40,7 @@ class Session:
             cfg.src_lang,
             cfg.tgt_lang,
             sinks,
+            utterance_dir=utterance_dir,
         )
         self._captures = [
             Capture(Source.MIC, mic, self.pipeline.feed, self.pipeline.clock, self.pipeline.fail),

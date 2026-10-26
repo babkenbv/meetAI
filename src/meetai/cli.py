@@ -17,6 +17,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--system", help="system-audio monitor source name (default: monitor of default output)")
     p.add_argument("--asr-model", default=defaults.asr_model)
     p.add_argument("--translation-model", default=defaults.translation_model)
+    p.add_argument("--save-utterances", metavar="DIR", help="debug: save each utterance (wav) and transcript to DIR")
     p.add_argument("--show-latency", action="store_true", help="append end-of-phrase -> output latency")
     args = p.parse_args(argv)
 
@@ -33,7 +34,9 @@ def main(argv: list[str] | None = None) -> int:
     system = args.system or default_source("system")
     print(f"mic: {mic}\nsystem: {system}\nLoading models...", file=sys.stderr)
 
-    session = Session(cfg, mic, system, [lambda line: print(format_line(line, args.show_latency), flush=True)])
+    session = Session(
+        cfg, mic, system, [lambda line: print(format_line(line, args.show_latency), flush=True)], args.save_utterances
+    )
     session.start()
     print("Listening. Ctrl+C to stop.", file=sys.stderr)
     try:

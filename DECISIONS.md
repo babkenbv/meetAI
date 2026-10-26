@@ -47,3 +47,14 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   README/TESTS rather than adding automatic handling. Status: Open (could warn when the monitor is silent at start).
 - 2026-10-26 · Finding: when speakers feed the mic (echo, out of scope), every phrase is processed twice and latency rises
   to 4.5 to 6.8 s because one worker serializes ASR. Headphones avoid it. Status: Open.
+- 2026-10-26 · Live feedback on the user's own voice (short phrases): ASR was mostly right, but the model prepends "- " and
+  appends "…", which made NLLB translate "Ի՞նչպես ես…" as "How did you...". Fix: `clean_transcript` strips leading dashes and
+  trailing ellipses before translating and displaying (keeps Armenian ՞ and ։). Status: Decided.
+- 2026-10-26 · Translation beam size 4 (was 2). Scored on 40 FLEURS hy→en pairs with sacrebleu: beam 1 BLEU 35.7 / chrF 62.1
+  (1.11 s), beam 2 38.2 / 64.4 (1.24 s), beam 4 39.7 / 65.0 (1.39 s), beam 5 39.9 / 64.5 (1.68 s). On one-word inputs beam 2
+  gave "I'm going to tell you." for Բարև; beam 4 to 5 gave "How are you?". Status: Decided.
+- 2026-10-26 · Known limit: NLLB-600M guesses on one-word inputs (Բարև → "Hi, how are you?", Ինչպես ես without ՞ → "Like I did").
+  Options not taken yet: NLLB 1.3B distilled (about 2x slower, 5 GB download), a phrase glossary (hardcoded, rejected as a
+  hidden fallback). The small ASR model heard "Լավ եմ" correctly where base dropped "եմ", but costs ~2.8 s on 1 s clips.
+  Status: Open.
+- 2026-10-26 · `--save-utterances DIR` saves each utterance's audio and transcript (data/ is git-ignored) for offline comparison.

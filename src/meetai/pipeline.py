@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 import queue
 import threading
 import time
@@ -13,6 +14,7 @@ import numpy as np
 
 from meetai.asr.base import Transcriber
 from meetai.speakers import SpeakerLabeler
+from meetai.text import clean_transcript
 from meetai.translate.base import Translator
 from meetai.types import SAMPLE_RATE, AudioChunk, Line, Source, Utterance
 from meetai.vad import Segmenter
@@ -32,6 +34,7 @@ class Pipeline:
         tgt_lang: str,
         sinks: list[Sink],
         clock: Callable[[], float] | None = None,
+        utterance_dir: str | None = None,
     ) -> None:
         self._segmenters = segmenters
         self._labeler = labeler
@@ -39,6 +42,9 @@ class Pipeline:
         self._translator = translator
         self._src, self._tgt = src_lang, tgt_lang
         self._sinks = sinks
+        self._utterance_dir = Path(utterance_dir) if utterance_dir else None
+        if self._utterance_dir:
+            self._utterance_dir.mkdir(parents=True, exist_ok=True)
         t0 = time.monotonic()
         self.clock = clock or (lambda: time.monotonic() - t0)
         self._queue: queue.Queue[Utterance | None] = queue.Queue()
@@ -90,7 +96,7 @@ class Pipeline:
     def _process(self, utt: Utterance) -> None:
         # Speaker embedding runs in parallel with ASR; it is independent of the text.
         speaker_future = self._label_pool.submit(self._labeler.label, utt)
-        text = self._transcriber.transcribe(utt.samples, self._src)
+        text = clean_transcript(self._transcriber.transcribe(utt.samples, self._src))
         speaker = speaker_future.result()
         if not text:
             log.info("%s utterance at %.1fs: empty transcript, dropped", utt.source.value, utt.t_start)
@@ -107,5 +113,16 @@ class Pipeline:
             tgt_text=english,
             latency_s=self.clock() - utt.t_end,
         )
+        if self._utterance_dir:
+            self._save(utt, line)
         for sink in self._sinks:
             sink(line)
+
+    def _save(self, utt: Utterance, line: Line) -> None:
+        """Debug aid: keep the audio and transcript of each utterance for offline model comparison."""
+        import soundfile as sf
+
+        name = f"{int(utt.t_start * 1000):08d}_{utt.source.value}.wav"
+        sf.write(self._utterance_dir / name, utt.samples, SAMPLE_RATE, subtype="PCM_16")
+        with open(self._utterance_dir / "transcripts.tsv", "a", encoding="utf-8") as f:
+            f.write(f"{name}\t{line.src_text}\t{line.tgt_text}\n")
