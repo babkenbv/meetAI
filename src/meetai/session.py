@@ -49,7 +49,9 @@ class Session:
             sinks,
             utterance_dir=utterance_dir,
             accurate_transcriber=(
-                FasterWhisperTranscriber(cfg.asr_accurate_model, cfg.asr_compute_type, cfg.cpu_threads)
+                FasterWhisperTranscriber(
+                    cfg.asr_accurate_model, cfg.asr_compute_type, cfg.cpu_threads, cfg.asr_accurate_prompt
+                )
                 if cfg.asr_accurate_model
                 else None
             ),

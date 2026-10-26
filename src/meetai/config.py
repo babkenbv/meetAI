@@ -17,6 +17,9 @@ class Config:
     # Accurate model: used only for short utterances while nothing is queued (its cost is ~2.7 s even for 1 s of audio).
     asr_accurate_model: str | None = "models/asr"
     asr_accurate_max_s: float = 2.0
+    # Prompt priming for the accurate model only: it heard "Ողջույն" as "Ողջուհին" without it, and WER on 7 read sentences
+    # (none containing these words) fell from 45.1% to 37.8%. It hurt the base model on FLEURS (29.8% -> 34.8%).
+    asr_accurate_prompt: str | None = "Բարև, ողջույն, շնորհակալություն, ինչպես ես, լավ եմ։"
     asr_compute_type: str = "int8"
     cpu_threads: int = 4
     # Segmentation

@@ -16,7 +16,9 @@ MAX_TOKENS_SLACK = 6
 
 
 class FasterWhisperTranscriber:
-    def __init__(self, model: str, compute_type: str = "int8", cpu_threads: int = 4) -> None:
+    def __init__(
+        self, model: str, compute_type: str = "int8", cpu_threads: int = 4, initial_prompt: str | None = None
+    ) -> None:
         from faster_whisper import WhisperModel
 
         # A path means a local CTranslate2 model directory; fail loudly if it is missing.
@@ -24,6 +26,7 @@ class FasterWhisperTranscriber:
             raise FileNotFoundError(
                 f"ASR model directory {model!r} not found. Run scripts/convert_asr.sh first."
             )
+        self._initial_prompt = initial_prompt
         self._model = WhisperModel(
             model, device="cpu", compute_type=compute_type, cpu_threads=cpu_threads
         )
@@ -37,6 +40,7 @@ class FasterWhisperTranscriber:
             beam_size=1,
             condition_on_previous_text=False,
             vad_filter=False,
+            initial_prompt=self._initial_prompt,
             **limit,
         )
         return " ".join(s.text.strip() for s in segments).strip()

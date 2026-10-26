@@ -93,3 +93,8 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   already swapping (rejected). OPUS is best per second on greetings but poor on sentences. Decision: hybrid. Inputs of at most
   2 words use OPUS-MT, everything else NLLB. Caveats: the 10-phrase judgment is mine and small; MADLAD was timed on 8 sentences.
   Status: Decided. The MADLAD files remain in models/madlad-3b-ct2 (3 GB) for a possible GPU laptop.
+- 2026-10-26 · Accurate (small) ASR got "Ողջույն" wrong ("Ողջուհին") on the user's clips while base heard it right. A text prompt of
+  common greetings ("Բարև, ողջույն, շնորհակալություն, ինչպես ես, լավ եմ։") fixed it. Checked that it is not just leakage: on the user's
+  7 read sentences (none contain those words) small WER went 45.1% -> 37.8%, CER 10.7% -> 9.5%; FLEURS(20) unchanged (30.1% -> 30.0%).
+  The same prompt HURT base on FLEURS (29.8% -> 34.8%), so it is applied to the accurate model only. Caveat: one speaker, 7 sentences
+  and ~5 greeting clips. Status: Decided.
