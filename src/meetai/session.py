@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from meetai.asr.faster_whisper import FasterWhisperTranscriber
 from meetai.audio.capture import CHUNK_SAMPLES, Capture
 from meetai.audio.health import check_mic_signal, probe_source
@@ -15,9 +17,18 @@ from meetai.types import SAMPLE_RATE, Source
 from meetai.vad import Segmenter, load_silero
 
 
+log = logging.getLogger(__name__)
+
+
 class Session:
     def __init__(
-        self, cfg: Config, mic: str, system: str, sinks: list[Sink], utterance_dir: str | None = None
+        self,
+        cfg: Config,
+        mic: str,
+        system: str,
+        sinks: list[Sink],
+        utterance_dir: str | None = None,
+        strict_mic_check: bool = True,
     ) -> None:
         # Silero VAD keeps internal state, so each source gets its own model instance.
         segmenters = {
@@ -63,13 +74,20 @@ class Session:
             accurate_max_s=cfg.asr_accurate_max_s,
         )
         self._mic = mic
+        self._strict_mic_check = strict_mic_check
         self._captures = [
             Capture(Source.MIC, mic, self.pipeline.feed, self.pipeline.clock, self.pipeline.fail),
             Capture(Source.SYSTEM, system, self.pipeline.feed, self.pipeline.clock, self.pipeline.fail),
         ]
 
     def start(self) -> None:
-        check_mic_signal(probe_source(self._mic, seconds=3.0), self._mic)  # fail loudly on a stuck mic before the slow warm-up
+        try:
+            check_mic_signal(probe_source(self._mic, seconds=3.0), self._mic)  # fail loudly on a stuck mic before the slow warm-up
+        except RuntimeError as exc:
+            if self._strict_mic_check:
+                raise
+            # Explicitly requested (--ignore-mic-check): carry on, but say so, because most speech will be missed.
+            log.error("MIC PROBLEM (continuing because of --ignore-mic-check): %s", exc)
         self.pipeline.warm_up()
         self.pipeline.start()
         for c in self._captures:

@@ -45,3 +45,24 @@ def test_high_pass_removes_offset_and_keeps_speech_band():
     tail = out[8000:]
     assert abs(tail.mean()) < 0.01
     assert np.sqrt((tail**2).mean()) == pytest.approx(0.2 / np.sqrt(2), rel=0.05)
+
+
+def test_session_start_warns_instead_of_raising_when_mic_check_is_ignored(monkeypatch, caplog):
+    import logging
+    import types
+
+    from meetai import session as session_module
+
+    def broken_probe(device, seconds=1.0, timeout=6.0):
+        return np.clip(noise(0.45, 48000), -1, 1)
+
+    monkeypatch.setattr(session_module, "probe_source", broken_probe)
+    fake = types.SimpleNamespace(
+        _mic="mic", _strict_mic_check=False, pipeline=types.SimpleNamespace(warm_up=lambda: None, start=lambda: None), _captures=[]
+    )
+    with caplog.at_level(logging.ERROR):
+        session_module.Session.start(fake)
+    assert "MIC PROBLEM" in caplog.text
+    fake._strict_mic_check = True
+    with pytest.raises(RuntimeError, match="unusable"):
+        session_module.Session.start(fake)

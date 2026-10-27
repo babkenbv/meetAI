@@ -144,3 +144,8 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   bad for 26 of 29 seconds right after (rms 0.2 to 0.6, mean swinging -0.4 to 0). Ruled out: charger, app, gain, PulseAudio restart, reboot, codec power-save.
   The built-in analog input of this laptop is faulty or in a state software cannot clear. Decision: use an external microphone (wired headset on the 3.5 mm
   jack, USB mic, or a Bluetooth headset), `meetai --mic <source>`. Status: Open until an external mic is tested.
+- 2026-10-27 · User asked to "get back to the previous state" (hearing, even if bad). Ran commit 76bfbfb (v6) from a scratch copy: it hears but is NLLB-only, so
+  one-word greetings lose the OPUS fix and junk input gets NLLB's stock hallucination ("What is the meaning of life?" for "Ֆող չյուին", "Տարել").
+  Better: current code plus `--ignore-mic-check` (the startup mic check logs "MIC PROBLEM" and continues instead of refusing). ASR confidence cannot
+  flag junk: Whisper avg_logprob is -0.09 to -0.49 on junk clips vs -0.02 to -0.12 on real speech (overlapping; the model is confidently wrong), so
+  no "unclear" gate was added. Status: Decided.

@@ -20,6 +20,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--translation-model", default=defaults.translation_model)
     p.add_argument("--short-translation-model", default=defaults.translation_short_model, help="model for 1-2 word phrases; '' disables")
     p.add_argument("--save-utterances", metavar="DIR", help="debug: save each utterance (wav) and transcript to DIR")
+    p.add_argument("--ignore-mic-check", action="store_true", help="keep going when the startup mic check fails (prints the problem)")
     p.add_argument("--show-latency", action="store_true", help="append end-of-phrase -> output latency")
     args = p.parse_args(argv)
 
@@ -42,7 +43,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"mic: {mic}\nsystem: {system}\nLoading models...", file=sys.stderr)
 
     session = Session(
-        cfg, mic, system, [lambda line: print(format_line(line, args.show_latency), flush=True)], args.save_utterances
+        cfg, mic, system, [lambda line: print(format_line(line, args.show_latency), flush=True)], args.save_utterances,
+        strict_mic_check=not args.ignore_mic_check,
     )
     session.start()
     print("Listening. Ctrl+C to stop.", file=sys.stderr)
