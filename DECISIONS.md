@@ -140,3 +140,7 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   ALSA gains agree), not drift (high-pass keeps rms 0.2 to 0.3). Hardware: Acer Aspire A515-54G, Realtek ALC255, snd_hda_intel `power_save=1`,
   `power_save_controller=Y`. Hypothesis to test (needs root): codec power-save causes the DC offset and noise bursts when it powers up; test with
   `echo 0 | sudo tee /sys/module/snd_hda_intel/parameters/power_save`. Other option: headset / USB mic. Status: Open.
+- 2026-10-27 · Codec power-save hypothesis REJECTED. The user set `snd_hda_intel power_save=0` (verified by reading the parameter); the built-in mic was still
+  bad for 26 of 29 seconds right after (rms 0.2 to 0.6, mean swinging -0.4 to 0). Ruled out: charger, app, gain, PulseAudio restart, reboot, codec power-save.
+  The built-in analog input of this laptop is faulty or in a state software cannot clear. Decision: use an external microphone (wired headset on the 3.5 mm
+  jack, USB mic, or a Bluetooth headset), `meetai --mic <source>`. Status: Open until an external mic is tested.
