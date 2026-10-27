@@ -30,9 +30,11 @@ through the pipeline.
 
 ### Troubleshooting: the microphone hears nothing or only noise
 
-A laptop charger can inject loud noise and a DC offset into the built-in analog mic input (seen on an ALC255 codec: rms 0.5
-and clipping on AC, clean rms 0.03 on battery). The program checks the mic for 3 s at startup and stops with an error
-if it is mostly saturated or noisy. Fix: run on battery, or use a headset or USB microphone (`meetai --mic <source>`).
+The built-in analog mic input of one test laptop (Acer Aspire A515-54G, Realtek ALC255) intermittently delivered a huge DC offset
+and noise (rms 0.5, clipping), coming and going within seconds, regardless of charger, app or gain. The cause was not found; disabling
+codec power-saving (`echo 0 | sudo tee /sys/module/snd_hda_intel/parameters/power_save`) is the first thing to try, and a headset or USB
+microphone avoids the input entirely (`meetai --mic <source>`; list sources with `meetai --list-devices`). The program checks the mic
+for 3 s at startup and stops with an error if it is mostly saturated or noisy.
 
 ## Run
 

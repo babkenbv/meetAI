@@ -128,9 +128,15 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   0.47 and up to 10% clipping, so it alternates between clean and unusable within seconds. The startup check was changed from one 1 s probe to
   3 s judged in 0.5 s windows; it fails only if more than half the windows are saturated or noisy (3 of 3 real runs passed). Remaining risk: phrases that
   fall in a bad moment are lost. Status: Open (hardware). Next: reboot, or use a headset mic, then re-measure ASR accuracy on a healthy signal.
-- 2026-10-27 · ROOT CAUSE of the mic fault: AC adapter noise. After a reboot the mic was still bad on AC (28 of 29 seconds with raw rms > 0.2).
+- 2026-10-27 · [RETRACTED, see next entry] Claimed root cause of the mic fault: AC adapter noise. After a reboot the mic was still bad on AC (28 of 29 seconds with raw rms > 0.2).
   Unplugging the charger (battery 100%) gave 16 of 18 clean seconds (rms 0.02 to 0.05, mean ~0); the 2 bad seconds were the power-source switch. Not
   gain, not PulseAudio, not drift. Everything measured about ASR accuracy on the user's voice between 2026-10-26 and 2026-10-27 (live3 to live9, the
   8 read sentences) was probably made on a noisy mic; those numbers (base WER 52.6% / CER 16.2%, small 45.1% / 10.7%) are pessimistic and must be re-measured
   on battery or with a headset. Mitigations kept: high-pass filter, startup mic check with a fix hint. Interview advice: run on battery or use a
   headset/USB mic. Status: Fixed (workaround).
+- 2026-10-27 · Charger theory RETRACTED. About 10 minutes later, on battery with the app stopped, the mic was bad again (12 of 12 seconds with default latency;
+  rms 0.45 to 0.50, peak 1.06) and also with --latency-msec=32. The earlier clean spell (16 of 18 s) was luck: the fault comes and goes, with clean
+  stretches seen right after `pactl suspend-source` flips, a reboot-then-probe and the power switch. Not the charger, not the app, not gain (Pulse and
+  ALSA gains agree), not drift (high-pass keeps rms 0.2 to 0.3). Hardware: Acer Aspire A515-54G, Realtek ALC255, snd_hda_intel `power_save=1`,
+  `power_save_controller=Y`. Hypothesis to test (needs root): codec power-save causes the DC offset and noise bursts when it powers up; test with
+  `echo 0 | sudo tee /sys/module/snd_hda_intel/parameters/power_save`. Other option: headset / USB mic. Status: Open.
