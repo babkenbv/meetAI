@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from meetai.translate.base import Translator
+from meetai.translate.base import TranslationResult, Translator
 
 
 class ScoredTranslator(Protocol):
@@ -24,8 +24,11 @@ class ShortPhraseTranslator:
         self._min_confidence = min_confidence
 
     def translate(self, text: str, src_lang: str, tgt_lang: str) -> str:
+        return self.translate_result(text, src_lang, tgt_lang).text
+
+    def translate_result(self, text: str, src_lang: str, tgt_lang: str) -> TranslationResult:
         if len(text.split()) <= self._max_words:
             out, confidence = self._short.translate_scored(text, src_lang, tgt_lang)
             if confidence >= self._min_confidence:
-                return out
-        return self._long.translate(text, src_lang, tgt_lang)
+                return TranslationResult(out, True)
+        return self._long.translate_result(text, src_lang, tgt_lang)

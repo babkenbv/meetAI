@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from meetai.translate.base import TranslationResult
+
 
 class OpusHyEnTranslator:
     """Helsinki-NLP/opus-mt-hy-en (Marian) converted to CTranslate2 int8. Armenian to English only."""
@@ -18,6 +20,10 @@ class OpusHyEnTranslator:
 
     def translate(self, text: str, src_lang: str, tgt_lang: str) -> str:
         return self.translate_scored(text, src_lang, tgt_lang)[0]
+
+    def translate_result(self, text: str, src_lang: str, tgt_lang: str) -> TranslationResult:
+        out, confidence = self.translate_scored(text, src_lang, tgt_lang)
+        return TranslationResult(out, confidence >= -1.5)
 
     def translate_scored(self, text: str, src_lang: str, tgt_lang: str) -> tuple[str, float]:
         """Returns (translation, confidence). Confidence is the mean token log-probability: 0 is certain, lower is less sure."""

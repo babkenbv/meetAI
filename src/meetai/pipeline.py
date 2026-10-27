@@ -119,7 +119,7 @@ class Pipeline:
         if not text:
             log.info("%s utterance at %.1fs: empty transcript, dropped", utt.source.value, utt.t_start)
             return
-        english = self._translator.translate(text, self._src, self._tgt)
+        translation = self._translator.translate_result(text, self._src, self._tgt)
         line = Line(
             t_start=utt.t_start,
             t_end=utt.t_end,
@@ -128,8 +128,9 @@ class Pipeline:
             src_lang=self._src,
             src_text=text,
             tgt_lang=self._tgt,
-            tgt_text=english,
+            tgt_text=translation.text,
             latency_s=self.clock() - utt.t_end,
+            tgt_confident=translation.confident,
         )
         if self._utterance_dir:
             self._save(utt, line)

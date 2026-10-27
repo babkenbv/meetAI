@@ -47,7 +47,9 @@ class Session:
             SpeechBrainEmbedder(),
             OnlineSpeakerClusterer(cfg.speaker_threshold, cfg.min_embed_s),
         )
-        translator = NllbTranslator(cfg.translation_model, cfg.translation_tokenizer, cfg.cpu_threads)
+        translator = NllbTranslator(
+            cfg.translation_model, cfg.translation_tokenizer, cfg.cpu_threads, min_confidence=cfg.translation_min_confidence
+        )
         if cfg.translation_short_model:
             translator = ShortPhraseTranslator(
                 OpusHyEnTranslator(cfg.translation_short_model, cfg.cpu_threads),

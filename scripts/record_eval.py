@@ -17,7 +17,8 @@ import soundfile as sf
 from meetai.audio.devices import default_source
 from meetai.evaluation import load_manifest
 
-OUT = Path("data/mine")
+import os
+OUT = Path(os.environ.get("RECORD_OUT", "data/mine"))
 
 
 def record_until_enter(device: str) -> np.ndarray:

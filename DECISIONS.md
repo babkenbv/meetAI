@@ -149,3 +149,15 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   Better: current code plus `--ignore-mic-check` (the startup mic check logs "MIC PROBLEM" and continues instead of refusing). ASR confidence cannot
   flag junk: Whisper avg_logprob is -0.09 to -0.49 on junk clips vs -0.02 to -0.12 on real speech (overlapping; the model is confidently wrong), so
   no "unclear" gate was added. Status: Decided.
+- 2026-10-28 · Re-measured on a HEALTHY mic (mean 0, rms 0.06, peak 0.4 to 0.67; `RECORD_OUT=data/mine2 scripts/record_eval.py`, 8 FLEURS sentences read by the user):
+  base WER 56.2% / CER 13.0%; small WER 36.6% / CER 9.6%. High-pass, RMS or peak normalization changed nothing (base 53.8 to 55.2%, small 39.9 to 41.7%). So the
+  earlier numbers (taken on the faulty mic) understated small's advantage on this voice (base 52.6% / 16.2%, small 45.1% / 10.7%), and the mic fault was NOT
+  the main reason base is poor: the model/voice mismatch is. Status: Known limitation.
+- 2026-10-28 · Latency of the accurate (small) path today (AC power, load ~4.8, Chrome open): 3.55 s ASR for a 2 s clip (earlier 2.7 s), 3.9 s for 3 s, 4.0 s for 4 s,
+  5.4 s for 5 s; with NLLB and the 0.5 s VAD wait: 4.7 / 5.3 / 5.2 / 7.2 s. Base: 2.0 / 2.2 / 2.5 / 3.2 s. So small cannot cover more than ~2 s of speech
+  within the 5 s budget on this CPU (the existing 3.8 s self-limit will often fall back to base). Not raised. Idea not built: show the fast draft immediately, then a
+  corrected line when small finishes, only while idle. Status: Open.
+- 2026-10-28 · Added a translation confidence flag. NLLB's mean token log-prob separates real Armenian (28 inputs: mean -0.46, p10 -0.64) from ASR gibberish
+  (34 inputs: mean -1.08, max -0.56): at -0.9 it flags 28/34 junk and 1/28 good (indicative: my own junk labels). Lines below it print `EN: [unsure] ...`
+  (the model is guessing, e.g. "What is the meaning of life?" for "Հանը"). OPUS answers are confident only above -1.5. Whisper's own avg_logprob could not
+  do this (overlapping ranges). Status: Decided.

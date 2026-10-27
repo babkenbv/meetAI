@@ -77,6 +77,11 @@ Setup details are in `DECISIONS.md`. Downloads are large (about 3.5 GB originals
 
 ## Known limitations
 
+- Lines marked `[unsure]` are translations the model itself is not confident about (usually the speech model mis-heard); read the Armenian
+  line before trusting the English.
+- On a healthy mic and one speaker reading 8 FLEURS sentences: the fast model has 56% WER (13% CER), the accurate model 37% WER (9.6% CER), but the
+  accurate model needs 3.5 s or more even for 2 s of audio on this CPU, so it only handles phrases up to 2 s.
+
 - Armenian accuracy is limited (WER ~33%): names, numbers and fast speech are often wrong, and translation inherits the errors.
 - Latency is ~3 s for one speaker, but can exceed 5 s when mic and system audio are busy at the same time
   (one CPU worker serializes ASR). Mic pickup of the speakers (echo) makes this worse and is out of scope.

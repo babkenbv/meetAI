@@ -45,3 +45,4 @@ class Line:
     tgt_lang: str
     tgt_text: str
     latency_s: float
+    tgt_confident: bool = True

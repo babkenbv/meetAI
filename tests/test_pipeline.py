@@ -22,8 +22,15 @@ class FakeAsr:
 
 
 class FakeMt:
+    confident = True
+
     def translate(self, text, src_lang, tgt_lang):
         return "Hello"
+
+    def translate_result(self, text, src_lang, tgt_lang):
+        from meetai.translate.base import TranslationResult
+
+        return TranslationResult("Hello", self.confident)
 
 
 class FakeEmbedder:
@@ -147,3 +154,14 @@ def test_slow_accurate_path_pauses_accurate_model_then_retries():
     now[0] += 31.0
     p._process(utt)  # pause over: the accurate model is tried again
     assert [l.src_text for l in lines] == ["accurate", "fast", "accurate"]
+
+
+def test_unsure_translation_is_flagged_in_the_line_and_the_output():
+    lines = []
+    mt = FakeMt()
+    mt.confident = False
+    segs = {s: Segmenter(s, loudness) for s in Source}
+    p = Pipeline(segs, SpeakerLabeler(FakeEmbedder(), OnlineSpeakerClusterer()), NamedAsr("fast"), mt, "hy", "en", [lines.append])
+    p._process(Utterance(Source.MIC, np.zeros(SAMPLE_RATE, np.float32), 0.0, 1.0))
+    assert lines[0].tgt_confident is False
+    assert "EN: [unsure] Hello" in format_line(lines[0])

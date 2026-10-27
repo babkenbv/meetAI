@@ -13,6 +13,7 @@ class Config:
     translation_tokenizer: str = "models/nllb-600m-ct2"
     # One-word inputs go to this model when it is confident (greetings); everything else to the NLLB model above.
     translation_short_model: str | None = "models/opus-hy-en-ct2"
+    translation_min_confidence: float = -0.9  # NLLB below this is shown as [unsure]
     short_max_words: int = 1
     short_min_confidence: float = -1.5
     # Accurate model: used only for short utterances while nothing is queued (its cost is ~2.7 s even for 1 s of audio).
