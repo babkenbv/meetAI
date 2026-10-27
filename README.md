@@ -40,6 +40,7 @@ for 3 s at startup and stops with an error if it is mostly saturated or noisy.
 
 ```bash
 meetai --show-latency                      # terminal
+meetai --ignore-mic-check --show-latency   # keep going if the startup mic check fails (it prints the problem)
 meetai --mic <source> --system <monitor>   # explicit devices
 ```
 
