@@ -28,6 +28,12 @@ muted** and something is playing. A muted output gives pure silence (`pactl list
 `pactl set-sink-mute @DEFAULT_SINK@ 0` to unmute). Use `python scripts/live_check.py` to play a test clip
 through the pipeline.
 
+### Troubleshooting: the microphone hears nothing or only noise
+
+A laptop charger can inject loud noise and a DC offset into the built-in analog mic input (seen on an ALC255 codec: rms 0.5
+and clipping on AC, clean rms 0.03 on battery). The program checks the mic for 3 s at startup and stops with an error
+if it is mostly saturated or noisy. Fix: run on battery, or use a headset or USB microphone (`meetai --mic <source>`).
+
 ## Run
 
 ```bash
