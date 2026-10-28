@@ -161,3 +161,7 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   (34 inputs: mean -1.08, max -0.56): at -0.9 it flags 28/34 junk and 1/28 good (indicative: my own junk labels). Lines below it print `EN: [unsure] ...`
   (the model is guessing, e.g. "What is the meaning of life?" for "Հանը"). OPUS answers are confident only above -1.5. Whisper's own avg_logprob could not
   do this (overlapping ranges). Status: Decided.
+- 2026-10-28 · A 5.5 s latency on a 2 s phrase had a non-model cause: an older meetAI process (--save-utterances data/live12) was still running in another terminal
+  tab (33% CPU, 17% RAM, same mic) while a new one ran. Second time this happened (also on 2026-10-27, 40% of RAM). Fix: the CLI now refuses to start if
+  another `meetai.cli` process exists and names its pid (`meetai.instances`, /proc scan, Linux only; unit-tested with a fake /proc). The clips of that run were
+  clean (mean 0, rms 0.036 to 0.053), so the wrong words (e.g. "Վարով դէ շարք ալամբ, դոք") are the speech model's. Status: Fixed.

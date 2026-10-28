@@ -7,6 +7,7 @@ import time
 from meetai.audio.devices import default_source, list_sources
 from meetai.config import Config
 from meetai.format import format_line
+from meetai.instances import other_instances
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -29,6 +30,15 @@ def main(argv: list[str] | None = None) -> int:
             kind = "system (monitor)" if d.is_monitor else "microphone"
             print(f"{d.index:>3}  {kind:<17} {d.name}")
         return 0
+
+    running = other_instances()
+    if running:
+        print(
+            f"Another meetAI is already running (pid {', '.join(map(str, running))}). Two copies share the mic and the CPU and "
+            f"slow each other down. Stop it first (Ctrl-C in its terminal, or: kill {running[0]}).",
+            file=sys.stderr,
+        )
+        return 1
 
     from meetai.session import Session  # heavy imports only when actually running
 
