@@ -173,3 +173,6 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   enrol in the MOK screen. Expected gain (ESTIMATE, not measured): whisper-small on the MX250 in roughly 1 to 1.5 s instead of 2.7 to 3.5 s on the CPU, which would let
   the accurate model (37% WER vs 56% on the user's voice) handle every utterance within 5 s. BuzzASR large-v3 (1.5B) will not fit in 2 GB VRAM. Needs the
   cuBLAS and cuDNN 9 libraries (about 1.2 GB via pip) for CTranslate2 on GPU. Status: Open, waiting for the user to enrol the key.
+- 2026-10-28 · GPU path NOT taken. The user declined the Secure Boot key enrolment + reboot + prime-select change because of the risk to a laptop that must work at the
+  interview. Decision: stay CPU-only (the MX250 stays unused). Consequence: the accurate speech model (37% WER on the user's voice) stays limited to phrases up to ~2 s;
+  everything longer uses the fast model (56% WER). README must say so, and that a GPU machine would lift this. Status: Decided.

@@ -77,6 +77,9 @@ Setup details are in `DECISIONS.md`. Downloads are large (about 3.5 GB originals
 
 ## Known limitations
 
+- CPU only. The test laptop has a GeForce MX250 (2 GB) whose driver is blocked by Secure Boot; enabling it was judged too risky for an interview machine,
+  so it is unused. A working GPU would let the more accurate speech model handle every utterance within the 5 s limit (not measured).
+
 - Lines marked `[unsure]` are translations the model itself is not confident about (usually the speech model mis-heard); read the Armenian
   line before trusting the English.
 - On a healthy mic and one speaker reading 8 FLEURS sentences: the fast model has 56% WER (13% CER), the accurate model 37% WER (9.6% CER), but the
