@@ -165,3 +165,11 @@ Format: date · decision · why · status (Decided / Open / Unverified).
   tab (33% CPU, 17% RAM, same mic) while a new one ran. Second time this happened (also on 2026-10-27, 40% of RAM). Fix: the CLI now refuses to start if
   another `meetai.cli` process exists and names its pid (`meetai.instances`, /proc scan, Linux only; unit-tested with a fake /proc). The clips of that run were
   clean (mean 0, rms 0.036 to 0.053), so the wrong words (e.g. "Վարով դէ շարք ալամբ, դոք") are the speech model's. Status: Fixed.
+- 2026-10-28 · CORRECTION: the laptop (Acer Aspire A515-54G) does have a GPU, a GeForce MX250 (GP108M, 2 GB VRAM, Pascal, compute capability 6.1), next to the Intel
+  UHD 620 that drives the display. The 2026-10-24 claim "no usable GPU" came from `nvidia-smi` failing. Cause: nvidia-driver-580 and its DKMS modules are installed
+  for kernel 5.15.0-198 but Secure Boot is enabled and the module-signing key (/var/lib/shim-signed/mok/MOK.der, "mint Secure Boot Module Signature key") is not
+  enrolled (`mokutil --test-key`: not enrolled; no pending request), so the kernel refuses to load `nvidia`. `prime-select query` says `nvidia` (risky once the
+  driver loads: use `on-demand`, so the Intel GPU keeps driving the display). Fix path: `sudo prime-select on-demand`; `sudo mokutil --import MOK.der`; reboot and
+  enrol in the MOK screen. Expected gain (ESTIMATE, not measured): whisper-small on the MX250 in roughly 1 to 1.5 s instead of 2.7 to 3.5 s on the CPU, which would let
+  the accurate model (37% WER vs 56% on the user's voice) handle every utterance within 5 s. BuzzASR large-v3 (1.5B) will not fit in 2 GB VRAM. Needs the
+  cuBLAS and cuDNN 9 libraries (about 1.2 GB via pip) for CTranslate2 on GPU. Status: Open, waiting for the user to enrol the key.
